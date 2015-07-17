@@ -28,6 +28,13 @@
 
         var placeholder = $element.data('query-placeholder');
         var display = $element.data('display');
+        var st = $element.parent().find('#result-template').html(); // suggestion template
+        var et = $element.parent().find('#empty-template').html(); // empty template
+
+        // compile templates with Handlebars
+        var st = (typeof(st) == "undefined") ? null : Handlebars.compile(st);
+        var et = (typeof(et) == "undefined") ? null : Handlebars.compile(et);
+
         var bh = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -42,6 +49,10 @@
             {
                 display: display,
                 source: bh,
+                templates: {
+                    suggestion: st,
+                    empty: et
+                }
             });
 
     };

@@ -28,8 +28,8 @@ class TypeaheadExtension extends Nette\DI\CompilerExtension
      */
     public static function bind($config)
     {
-        Container::extensionMethod('addTypeahead', function($container, $name, $label = NULL, $remote = NULL, $prefetch = NULL) use ($config) {
-            $container[ $name ] = new TypeaheadInput($label, $config, $remote, $prefetch);
+        Container::extensionMethod('addTypeahead', function($container, $name, $label = NULL, $display = NULL, $remote = NULL) use ($config) {
+            return $container[ $name ] = new TypeaheadInput($label, $config, $display, $remote);
         });
     }
 }
