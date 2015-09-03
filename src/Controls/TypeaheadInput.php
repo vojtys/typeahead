@@ -123,19 +123,18 @@ class TypeaheadInput extends BaseControl implements ISignalReceiver
             'data-query-placeholder' => self::QUERY_PLACEHOLDER,
             'data-display' => $this->display,
             'placeholder' => $this->placeholder,
+            'value' => $this->getValue(),
         ]);
 
         $wrapper->add($input);
 
         // suggestion template
-        $st = $this->buildTemplate($this->suggestionTemplate, 'result-template');
-        if (!empty($st)) {
+        if (($st = $this->buildTemplate($this->suggestionTemplate, 'result-template'))) {
             $wrapper->add($st);
         }
 
         // empty template
-        $et = $this->buildTemplate($this->emptyTemplate, 'empty-template');
-        if (!empty($et)) {
+        if (($et = $this->buildTemplate($this->emptyTemplate, 'empty-template'))) {
             $wrapper->add($et);
         }
 

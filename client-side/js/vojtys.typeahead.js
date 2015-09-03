@@ -10,6 +10,15 @@
     // init variables
     var engine, remoteHost, template, empty;
 
+    // check dependences
+    if ($.fn.typeahead === undefined) {
+        console.error('Plugin "typeahead.js" is missing! Run `bower install typeahead.js` and load bundled version.');
+        return;
+    } else if ($.nette === undefined) {
+        console.error('Plugin "nette.ajax.js" is missing!.');
+        return;
+    }
+
     $.fn.vojtysFormsTypeahead = function() {
 
         return this.each(function() {
@@ -71,6 +80,13 @@
 
     // assign to DOM
     window.Vojtys = Vojtys;
+
+    // init typeahead if nette.ajax is success
+    $.nette.ext('VojtysTypeaheadLiveEvent', {
+        success: function () {
+            Vojtys.Forms.Typeahead.load();
+        }
+    });
 
     // return Objects
     return Vojtys;
