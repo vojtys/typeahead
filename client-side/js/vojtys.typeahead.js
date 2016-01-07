@@ -41,8 +41,8 @@
         var et = $element.parent().find('#empty-template').html(); // empty template
 
         // compile templates with Handlebars
-        var st = (typeof(st) == "undefined") ? null : Handlebars.compile(st);
-        var et = (typeof(et) == "undefined") ? null : Handlebars.compile(et);
+        st = (typeof(st) == "undefined") ? null : Handlebars.compile(st);
+        et = (typeof(et) == "undefined") ? null : Handlebars.compile(et);
 
         var bh = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
