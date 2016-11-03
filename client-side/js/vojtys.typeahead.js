@@ -92,4 +92,4 @@
     return Vojtys;
 
     // Immediately invoke function with default parameters
-})(jQuery, window, document, location, navigator)
+})(jQuery, window, document, location, navigator);
