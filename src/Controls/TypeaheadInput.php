@@ -77,7 +77,7 @@ class TypeaheadInput extends BaseControl implements ISignalReceiver
             throw new  Nette\InvalidArgumentException('Return value must be instance of Nette\Utils\Html');
         }
 
-        return $script->add($template);
+        return $script->addHtml($template);
     }
 
     /**
@@ -126,16 +126,16 @@ class TypeaheadInput extends BaseControl implements ISignalReceiver
             'value' => $this->getValue(),
         ]);
 
-        $wrapper->add($input);
+        $wrapper->addHtml($input);
 
         // suggestion template
         if (($st = $this->buildTemplate($this->suggestionTemplate, 'result-template'))) {
-            $wrapper->add($st);
+            $wrapper->addHtml($st);
         }
 
         // empty template
         if (($et = $this->buildTemplate($this->emptyTemplate, 'empty-template'))) {
-            $wrapper->add($et);
+            $wrapper->addHtml($et);
         }
 
         return $wrapper;
