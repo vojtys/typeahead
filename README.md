@@ -6,16 +6,26 @@ Typeahead (twitter/typeahead.js) for Nette framework
 # Install
 
 ```sh
-$ composer require vojtys/typeahead:v0.3.0
+$ composer require vojtys/typeahead
 ```
 
-# Configuration
+# Versions
 
-## NEON - add extension
+| State  | Version      | Branch   | Nette  | PHP     |
+|--------|--------------|----------|--------|---------|
+| stable | `v0.4.0`     | `master` | `3.0+` | `>=7.1` |
+| stable | `v0.3.3`     | `master` | `2.4`  | `>=5.6` |
+
+# Configuration
 
 ```yaml
 extensions:
 	typehead: Vojtys\Forms\Typeahead\TypeaheadExtension
+
+typeahead:
+	limit: 10
+	minLength: 2
+	highlight: true
 ```
 
 # Usage
@@ -23,54 +33,60 @@ extensions:
 ## Presenter/Control
 ```php
 
-/**
- * @return Nette\Application\UI\Form
- */
-public function createComponentTestForm()
-{
-    $form = new Nette\Application\UI\Form();
+	public function createComponentTypeaheadForm(): Form
+	{
+		$form = new Form();
 
-    $items = $this->items; // item service
+		/** @var TypeaheadInput $typeahead */
 
-    // name, label, display (input displayed value), suggestion callback
-    $typeahead = $form->addTypeahead('foo', 'Typeahead', 'title', function($display, $q) use ($items) {
-        return $items->searchBy([$display => $q]); // returns array result [title => 'foo', description => 'foo foo']
-    });
-    $typeahead->setPlaceholder('napiš něco'); // initial placeholder
+		// name, label, display (input displayed value), suggestion callback
+		$typeahead = $form->addTypeahead('typeahead', 'Typeahead', 'title', function($display, $q) {
 
-    // add handlebars templates (http://handlebarsjs.com/)
-    // suggestion template
-    $typeahead->suggestionTemplate = function(Nette\Utils\Html $template) {
-        $inner = Nette\Utils\Html::el('div')->setText('{{title}} – {{description}}');
-        return $template->add($inner);
-    };
-    // empty template
-    $typeahead->emptyTemplate = function(Nette\Utils\Html $template) {
-        $inner = Nette\Utils\Html::el('div')->setText('nic tu neni');
-        return $template->add($inner);
-    };
+			return $this->searchBy($q); // returns array result [title => 'foo', description => 'foo foo']
+		});
 
-    $form->addSubmit('ok', 'Odeslat');
-    return $form;
-}
+		$typeahead->setPlaceholder('Začni psát...'); // initial placeholder
+
+		// add handlebars templates (http://handlebarsjs.com/)
+
+		// suggestion template
+		$typeahead->setSuggestionTemplate(function(Html $template) {
+			$inner = Html::el('div')->setText('{{title}} – {{description}}');
+
+			return $template->addHtml($inner);
+		});
+
+		// empty template
+		$typeahead->setNotFoundTemplate(function(Html $template) {
+			$inner = Html::el('div')->setText('nic tu neni');
+
+			return $template->addHtml($inner);
+		});
+
+		$form->addSubmit('ok', 'Odeslat');
+
+		return $form;
+	}
 ```
 
-## CSS
+## css
 
 ```html
-<link rel="stylesheet" type="text/css" href="https://www.mydomain.com/vendor/vojtys/client-side/css/typeahead.css">
+<link rel="stylesheet" type="text/css" href="https://www.example.com/vendor/vojtys/assets/css/typeahead.css">
 ```
 
-## JavaScript
+## js
 
 Before `</body>` element.
 
 ```html
+<!-- nette.ajax.js -->
+<script src='https://www.example.com/vendor/vojtys/assets/js/nette.ajax.js'></script>
 <!-- handlebars.js -->
-<script src='https://www.mydomain.com/vendor/vojtys/client-side/js/handlebars-v3.0.3.js'></script>
+<script src='https://www.example.com/vendor/vojtys/assets/js/handlebars.min-v4.7.3.js'></script>
 <!-- typehead.js -->
-<script src='https://www.mydomain.com/vendor/vojtys/client-side/js/typeahead.js'></script>
-<script src='https://www.mydomain.com/vendor/vojtys/client-side/js/vojtys.typeahead.js'></script>
+<script src='https://www.example.com/vendor/vojtys/assets/js/typeahead.js'></script>
+<script src='https://www.example.com/vendor/vojtys/assets/js/vojtys.typeahead.js'></script>
 ```
 
 

@@ -13,10 +13,10 @@
         "ext-openssl": "To make requests via https"
     },
     "require": {
-        "php": ">= 5.4",
-        "nette/di": ">=2.3.0",
-        "nette/forms": ">=2.3.0",
-        "nette/utils": ">=2.3.0"
+        "php": ">=7.1",
+        "nette/di": "^3.0",
+        "nette/application": "^3.0",
+        "nette/forms": "^3.0",
     },
     "require-dev": {
         "nette/tester": "~1.4.0"
