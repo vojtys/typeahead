@@ -33,40 +33,40 @@ typeahead:
 ## Presenter/Control
 ```php
 
-	public function createComponentTypeaheadForm(): Form
-	{
-		$form = new Form();
+public function createComponentTypeaheadForm(): Form
+{
+    $form = new Form();
 
-		/** @var TypeaheadInput $typeahead */
+    /** @var TypeaheadInput $typeahead */
 
-		// name, label, display (input displayed value), suggestion callback
-		$typeahead = $form->addTypeahead('typeahead', 'Typeahead', 'title', function($display, $q) {
+    // name, label, display (input displayed value), suggestion callback
+    $typeahead = $form->addTypeahead('typeahead', 'Typeahead', 'title', function($display, $q) {
 
-			return $this->searchBy($q); // returns array result [title => 'foo', description => 'foo foo']
-		});
+        return $this->searchBy($q); // returns array result [title => 'foo', description => 'foo foo']
+    });
 
-		$typeahead->setPlaceholder('Začni psát...'); // initial placeholder
+    $typeahead->setPlaceholder('Začni psát...'); // initial placeholder
 
-		// add handlebars templates (http://handlebarsjs.com/)
+    // add handlebars templates (http://handlebarsjs.com/)
 
-		// suggestion template
-		$typeahead->setSuggestionTemplate(function(Html $template) {
-			$inner = Html::el('div')->setText('{{title}} – {{description}}');
+    // suggestion template
+    $typeahead->setSuggestionTemplate(function(Html $template) {
+        $inner = Html::el('div')->setText('{{title}} – {{description}}');
 
-			return $template->addHtml($inner);
-		});
+        return $template->addHtml($inner);
+    });
 
-		// empty template
-		$typeahead->setNotFoundTemplate(function(Html $template) {
-			$inner = Html::el('div')->setText('nic tu neni');
+    // empty template
+    $typeahead->setNotFoundTemplate(function(Html $template) {
+        $inner = Html::el('div')->setText('nic tu neni');
 
-			return $template->addHtml($inner);
-		});
+        return $template->addHtml($inner);
+    });
 
-		$form->addSubmit('ok', 'Odeslat');
+    $form->addSubmit('ok', 'Odeslat');
 
-		return $form;
-	}
+    return $form;
+}
 ```
 
 ## css
