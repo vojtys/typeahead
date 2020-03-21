@@ -11,25 +11,36 @@ use Nette\Forms\Container;
  */
 class TypeaheadExtension extends Nette\DI\CompilerExtension
 {
-    protected $config = [];
+	private $defaults = [
+		'limit' => 100,
+		'minLength' => 2,
+		'highlight' => true,
+	];
 
-    /**
-     * @param Nette\PhpGenerator\ClassType $classType
-     */
-    public function afterCompile(Nette\PhpGenerator\ClassType $classType)
-    {
-        $config = $this->getConfig($this->config);
-        $initialize = $classType->getMethod('initialize');
-        $initialize->addBody('Vojtys\Forms\Typeahead\TypeaheadExtension::bind(?);', [$config]);
-    }
+	public function loadConfiguration(): void
+	{
+		$this->validateConfig($this->defaults);
+	}
 
-    /**
-     * @param array $config
-     */
-    public static function bind($config)
-    {
-        Container::extensionMethod('addTypeahead', function($container, $name, $label = NULL, $display = NULL, $remote = NULL) use ($config) {
-            return $container[ $name ] = new TypeaheadInput($label, $config, $display, $remote);
-        });
-    }
+	public function afterCompile(Nette\PhpGenerator\ClassType $classType): void
+	{
+		$config = $this->getConfig();
+
+		$initialize = $classType->getMethod('initialize');
+		$initialize->addBody('Vojtys\Forms\Typeahead\TypeaheadExtension::bind(?);', [$config]);
+	}
+
+	public static function bind($config): void
+	{
+		Container::extensionMethod('addTypeahead',
+			function ($container, $name, $label = null, $display = null, $remote = null) use ($config) {
+				$typeaheadInput = new TypeaheadInput($label);
+
+				$typeaheadInput->setConfig($config);
+				$typeaheadInput->setRemote($remote);
+				$typeaheadInput->setDisplay($display);
+
+				return $container[$name] = $typeaheadInput;
+			});
+	}
 }

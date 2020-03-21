@@ -1,4 +1,4 @@
-(function($, window, document, location, navigator) {
+(function($, window) {
 
     /* jshint laxbreak: true, expr: true */
     "use strict";
@@ -6,9 +6,6 @@
     // init objects
     var Vojtys = window.Vojtys || {};
     Vojtys.Forms = Vojtys.Forms || {};
-
-    // init variables
-    var engine, remoteHost, template, empty;
 
     // check dependences
     if ($.fn.typeahead === undefined) {
@@ -45,7 +42,7 @@
         et = (typeof(et) == "undefined") ? null : Handlebars.compile(et);
 
         var bh = new Bloodhound({
-            datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
                 url: $element.data('remote-url'),
@@ -62,8 +59,8 @@
                     suggestion: st,
                     empty: et
                 }
-            });
-
+            }
+        );
     };
 
     Vojtys.Forms.Typeahead.load = function() {
@@ -88,8 +85,6 @@
         }
     });
 
-    // return Objects
     return Vojtys;
 
-    // Immediately invoke function with default parameters
-})(jQuery, window, document, location, navigator);
+})(jQuery, window);

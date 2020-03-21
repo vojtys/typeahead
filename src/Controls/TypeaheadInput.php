@@ -1,228 +1,197 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Vojtys\Forms\Typeahead;
 
 use Nette;
-use Nette\Utils;
+use Nette\Utils\Html;
 use Nette\Forms\Form;
-use Nette\Forms\Controls\BaseControl;
 use Nette\Application\UI\ISignalReceiver;
 
 /**
  * Class TypeaheadInput
  * @package Vojtys\Forms\Typeahead
  */
-class TypeaheadInput extends BaseControl implements ISignalReceiver
+class TypeaheadInput extends Nette\Forms\Controls\BaseControl implements ISignalReceiver
 {
-    const QUERY_PLACEHOLDER = '__QUERY_PLACEHOLDER__';
-    const LIMIT = 10;
-    const MIN_LENGTH = 2;
+	use TypeaheadLinkGenerator;
 
-    /** @var string  */
-    protected $placeholder;
+	const QUERY_PLACEHOLDER = '__QUERY_PLACEHOLDER__';
 
-    /** @var callable */
-    protected $remote;
+	/** @var Nette\Application\UI\Presenter $presenter */
+	private $presenter;
 
-    /** @var  string */
-    protected $remoteLink;
+	/** @var callable $suggestionTemplate */
+	private $suggestionTemplate;
 
-    /** @var callable */
-    protected $prefetch;
+	/** @var callable $notFoundTemplate */
+	private $notFoundTemplate;
 
-    /** @var  Nette\Application\IPresenter */
-    protected $presenter;
+	/** @var array $config */
+	private $config;
 
-    /** @var  string */
-    protected $display;
+	/** @var string $placeholder */
+	private $placeholder;
 
-    /** @var int  */
-    protected $limit = self::LIMIT;
+	/** @var callable $remote */
+	private $remote;
 
-    /** @var int  */
-    protected $minLength = self::MIN_LENGTH;
+	/** @var  string $remoteLink */
+	private $remoteLink;
 
-    /** @var  callback */
-    public $suggestionTemplate;
-
-    /** @var  callback */
-    public $emptyTemplate;
+	/** @var  string $display */
+	private $display;
 
 
-    /**
-     * @param null $label
-     * @param $config
-     * @param null $display
-     * @param null $remote
-     */
-    public function __construct($label, $config, $display = NULL, $remote = NULL)
-    {
-        parent::__construct($label);
+	public function __construct(string $label)
+	{
+		parent::__construct($label);
 
-        $this->monitor('Nette\Application\UI\Presenter');
-        $this->remote = $remote;
-        $this->display = $display;
-    }
+		// sets presenter and remote link
+		$this->monitor(Nette\Application\UI\Presenter::class, function ($presenter): void {
 
-    protected function buildTemplate($callback, $id)
-    {
-        if (!is_callable($callback)) {
-            return NULL;
-        }
+			/** @var Nette\Application\UI\Presenter $presenter */
+			$this->presenter = $presenter;
 
-        $script = Utils\Html::el('script', ['id' => $id, 'type'=> 'text/x-handlebars-template']);
-        $template = Nette\Utils\Callback::invokeArgs($callback, [Utils\Html::el('div')]);
+			$this->remoteLink = $this->link($presenter, 'remote!', [
+				'q' => self::QUERY_PLACEHOLDER
+			], 'link');
+		});
+	}
 
-        if (!$template instanceof Utils\Html) {
-            throw new  Nette\InvalidArgumentException('Return value must be instance of Nette\Utils\Html');
-        }
+	public function getControl(): Html
+	{
+		$wrapper = Html::el('div');
 
-        return $script->addHtml($template);
-    }
+		$input = parent::getControl();
 
-    /**
-     * @param $params
-     * @throws \Nette\InvalidStateException
-     */
-    public function handleRemote($params)
-    {
-        if (!is_callable($this->remote)) {
-            throw new Nette\InvalidStateException('Undefined Typehad callback.');
-        }
-        $q = (array_key_exists('q', $params)) ? $params['q'] : NULL;
+		$input->addAttributes([
+			'class' => 'form-control',
+			'data-vojtys-forms-typeahead' => '',
+			'data-remote-url' => $this->remoteLink,
+			'data-settings' => $this->getControlSettings(),
+			'data-query-placeholder' => self::QUERY_PLACEHOLDER,
+			'data-display' => $this->display,
+			'placeholder' => $this->placeholder,
+			'value' => $this->getValue(),
+		]);
 
-        // call remote function with displayed key and query
-        $this->presenter->sendJson(Nette\Utils\Callback::invokeArgs($this->remote, [$this->display, $q]));
-    }
+		$wrapper->addHtml($input);
 
-    /**
-     * @return array
-     */
-    public function getControlSettings()
-    {
-        return ['highlight' => TRUE,
-            'minLength' => $this->minLength,
-            'limit' => $this->limit];
-    }
+		if (!empty($this->suggestionTemplate)) {
+			$template = $this->buildTemplate($this->suggestionTemplate, 'result-template');
+			$wrapper->addHtml($template);
+		}
 
-    public function loadHttpData()
-    {
-        $this->setValue($this->getHttpData(Form::DATA_LINE));
-    }
+		if (!empty($this->notFoundTemplate)) {
+			$template = $this->buildTemplate($this->notFoundTemplate, 'empty-template');
+			$wrapper->addHtml($template);
+		}
 
-    public function getControl()
-    {
-        $wrapper = Utils\Html::el('div');
-        $input = parent::getControl();
+		return $wrapper;
+	}
 
-        $input->addAttributes([
-            'class' => 'form-control',
-            'data-vojtys-forms-typeahead' => '',
-            'data-remote-url' => $this->remoteLink,
-            'data-settings' => $this->getControlSettings(),
-            'data-query-placeholder' => self::QUERY_PLACEHOLDER,
-            'data-display' => $this->display,
-            'placeholder' => $this->placeholder,
-            'value' => $this->getValue(),
-        ]);
+	/**
+	 * @param $params
+	 * @throws Nette\Application\AbortException
+	 */
+	private function handleRemote($params)
+	{
+		$q = isset($params['q']) ? $params['q'] : null;
 
-        $wrapper->addHtml($input);
+		$remote = $this->remote;
 
-        // suggestion template
-        if (($st = $this->buildTemplate($this->suggestionTemplate, 'result-template'))) {
-            $wrapper->addHtml($st);
-        }
+		// call remote function with displayed key and query
+		$this->presenter->sendJson($remote($this->display, $q));
+	}
 
-        // empty template
-        if (($et = $this->buildTemplate($this->emptyTemplate, 'empty-template'))) {
-            $wrapper->addHtml($et);
-        }
+	private function buildTemplate(callable $callback, $id): Html
+	{
+		$script = Html::el('script', ['id' => $id, 'type' => 'text/x-handlebars-template']);
 
-        return $wrapper;
-    }
+		// create template
+		$template = $callback(Html::el('div'));
 
-    /**
-     * @param $component
-     */
-    protected function attached($component)
-    {
-        parent::attached($component);
+		return $script->addHtml($template);
+	}
 
-        if ($component instanceof Nette\Application\IPresenter) {
-            $this->presenter = $component;
+	/**
+	 * @throws Nette\Application\AbortException
+	 */
+	public function signalReceived(string $signal): void
+	{
+		$params = $this->presenter->popGlobalParameters($this->lookupPath('Nette\Application\UI\Presenter', TRUE));
 
-            // build links
-            $this->remoteLink = $this->link($component, 'remote!',  ['q' => self::QUERY_PLACEHOLDER]);
-        }
-    }
+		if ($signal === 'remote') {
+			$this->handleRemote($params);
+		}
+	}
 
-    /**
-     * @param $placeholder
-     * @return $this
-     */
-    public function setPlaceholder($placeholder)
-    {
-        $this->placeholder = $placeholder;
-        return $this;
-    }
+	public function loadHttpData(): void
+	{
+		$this->setValue($this->getHttpData(Form::DATA_LINE));
+	}
 
-    /**
-     * @param $opt
-     * @return $this
-     */
-    public function setMinLength($opt)
-    {
-        $this->minLength = $opt;
-        return $this;
-    }
+	public function getRemote(): callable
+	{
+		return $this->remote;
+	}
 
-    /**
-     * @param $limit
-     * @return $this
-     */
-    public function setLimit($limit)
-    {
-        $this->limit = $limit;
-        return $this;
-    }
+	public function setRemote(callable $remote): void
+	{
+		$this->remote = $remote;
+	}
 
-    /**
-     * @param $presenter
-     * @param $destination
-     * @param array $args
-     * @author dg
-     *
-     * @return mixed
-     */
-    public function link($presenter, $destination, $args = array())
-    {
-        $args = is_array($args) ? $args : array_slice(func_get_args(), 1);
-        if (!(isset($destination[0]) && $destination[0] === ':')) {
-            $path = $this->lookupPath('Nette\Application\UI\Presenter', TRUE);
-            $a = strpos($destination, '//');
-            if ($a !== FALSE) {
-                $destination = substr($destination, 0, $a + 2) . $path . '-' . substr($destination, $a + 2);
-            } else {
-                $destination = $path . '-' . $destination;
-            }
-            $newArgs = [];
-            foreach ($args as $key => $arg) {
-                $newArgs[$path . '-' . $key] = $arg;
-            }
-            $args = $newArgs;
-        }
-        return $presenter->link($destination, $args);
-    }
+	public function getDisplay(): string
+	{
+		return $this->display;
+	}
 
-    /**
-     * @param $signal
-     */
-    public function signalReceived($signal)
-    {
-        $params = $this->presenter->popGlobalParameters($this->lookupPath('Nette\Application\UI\Presenter', TRUE));
-        if ($signal === 'remote') {
-            $this->handleRemote($params);
-        }
-    }
+	public function setDisplay(string $display): void
+	{
+		$this->display = $display;
+	}
 
+	public function setPlaceholder(string $placeholder): void
+	{
+		$this->placeholder = $placeholder;
+	}
+
+	public function setMinLength(int $opt): void
+	{
+		$this->config['minLength'] = $opt;
+	}
+
+	public function setLimit(int $limit): void
+	{
+		$this->config['limit'] = $limit;
+	}
+
+	public function setHighLight(int $opt): void
+	{
+		$this->config['highlight'] = $opt;
+	}
+
+	public function setConfig(array $config): void
+	{
+		$this->config = $config;
+	}
+
+	public function setSuggestionTemplate(callable $suggestionTemplate): void
+	{
+		$this->suggestionTemplate = $suggestionTemplate;
+	}
+
+	public function setNotFoundTemplate(callable $notFoundTemplate): void
+	{
+		$this->notFoundTemplate = $notFoundTemplate;
+	}
+
+	private function getControlSettings(): array
+	{
+		return [
+			'highlight' => $this->config['highlight'],
+			'minLength' => $this->config['minLength'],
+			'limit' => $this->config['limit'],
+		];
+	}
 }
