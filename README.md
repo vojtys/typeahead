@@ -13,7 +13,7 @@ $ composer require vojtys/typeahead
 
 | State  | Version      | Branch   | Nette  | PHP     |
 |--------|--------------|----------|--------|---------|
-| stable | `v0.4.0`     | `master` | `3.0+` | `>=7.1` |
+| stable | `v0.4.1`     | `master` | `3.0+` | `>=7.1` |
 | stable | `v0.3.3`     | `master` | `2.4`  | `>=5.6` |
 
 # Configuration
