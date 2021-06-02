@@ -1,6 +1,6 @@
 {
     "name": "vojtys/typeahead",
-    "description": "Typeahead (twitter/typeahead.js) for Nette - Forms",
+    "description": "Typeahead (twitter/typeahead.js) for Nette (nette.org) - Forms",
     "type": "library",
     "license": ["BSD-3-Clause"],
     "homepage": "https://github.com/vojtys/typeahead",
