@@ -7,7 +7,6 @@
     var Vojtys = window.Vojtys || {};
     Vojtys.Forms = Vojtys.Forms || {};
 
-    // check dependences
     if ($.fn.typeahead === undefined) {
         console.error('Plugin "typeahead.js" is missing! Run `bower install typeahead.js` and load bundled version.');
         return;
@@ -23,7 +22,6 @@
 
             var settings = $.extend({}, $.fn.vojtysFormsTypeahead.defaults, $this.data('settings'));
 
-            // init vojtys typeahead
             if (!$this.data('vojtys-forms-typeahead')) {
                 $this.data('vojtys-forms-typeahead', (new Vojtys.Forms.Typeahead($this, settings)));
             }
@@ -67,18 +65,12 @@
         $('[data-vojtys-forms-typeahead]').vojtysFormsTypeahead();
     };
 
-    // autoload typeahead
     Vojtys.Forms.Typeahead.load();
 
-    /**
-     * Default settings
-     */
     $.fn.vojtysFormsTypeahead.defaults = {};
 
-    // assign to DOM
     window.Vojtys = Vojtys;
 
-    // init typeahead if nette.ajax is success
     $.nette.ext('VojtysTypeaheadLiveEvent', {
         success: function () {
             Vojtys.Forms.Typeahead.load();
